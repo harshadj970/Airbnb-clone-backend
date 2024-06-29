@@ -18,6 +18,8 @@ app.use(
   cors({
     credentials: true,
     origin: "https://airbnb-clone-io.vercel.app/*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    headers: ["Content-Type", "Authorization"],
   })
 );
 app.use("/uploads", express.static(__dirname + "/uploads"));
@@ -32,13 +34,13 @@ app.get("/", (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const { name, email, password,avatar } = req.body;
+  const { name, email, password, avatar } = req.body;
   try {
     const userDoc = await User.create({
       name,
       email,
       password: bcrypt.hashSync(password, bcryptSalt),
-      avatar
+      avatar,
     });
     res.json(userDoc);
   } catch (error) {
@@ -69,24 +71,23 @@ app.get("/profile", (req, res) => {
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, user) => {
       if (err) throw err;
-      const { _id, name, email ,avatar} = await User.findById(user.id);
-      res.json({ _id, name, email,avatar });
+      const { _id, name, email, avatar } = await User.findById(user.id);
+      res.json({ _id, name, email, avatar });
     });
   } else {
     res.json(null);
   }
 });
 
-app.get('/user',async (req,res)=>{
-const {id}=req.query;
-const user=await User.findById(id);
-if(user){
-  res.json({name:user.name,email:user.email,avatar:user.avatar});
-}
-else{
-  res.json('no user found')
-}
-})
+app.get("/user", async (req, res) => {
+  const { id } = req.query;
+  const user = await User.findById(id);
+  if (user) {
+    res.json({ name: user.name, email: user.email, avatar: user.avatar });
+  } else {
+    res.json("no user found");
+  }
+});
 
 app.post("/logout", (req, res) => {
   res.cookie("token", "").send(true);
@@ -112,12 +113,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-app.post('/upload-profile',upload.single('profile'),(req,res)=>{
+app.post("/upload-profile", upload.single("profile"), (req, res) => {
   if (!req.file) {
-    return res.json('no files uploaded')
+    return res.json("no files uploaded");
   }
   res.status(200).json(req.file);
-})
+});
 app.post("/upload", upload.array("photos"), (req, res) => {
   if (req.files.length === 0) {
     return res.json("no files uploaded");
@@ -138,7 +139,7 @@ app.post("/places", (req, res) => {
     maxGuests,
     price,
     bedroom,
-    bathroom
+    bathroom,
   } = req.body;
   const { token } = req.cookies;
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
@@ -155,8 +156,8 @@ app.post("/places", (req, res) => {
       checkOut,
       maxGuests,
       price,
-      bedrooms:bedroom,
-      bathrooms:bathroom
+      bedrooms: bedroom,
+      bathrooms: bathroom,
     });
     res.json(placeDoc);
   });
@@ -170,10 +171,10 @@ app.get("/user-places", async (req, res) => {
   });
 });
 
-app.get('/places',async (req,res)=>{
-  const places=await Place.find();
+app.get("/places", async (req, res) => {
+  const places = await Place.find();
   res.json(places);
-})
+});
 
 app.put("/places", async (req, res) => {
   const { token } = req.cookies;
@@ -190,7 +191,7 @@ app.put("/places", async (req, res) => {
     maxGuests,
     price,
     bedroom,
-    bathroom
+    bathroom,
   } = req.body;
   const updatedDoc = {
     title,
@@ -203,15 +204,15 @@ app.put("/places", async (req, res) => {
     checkOut,
     maxGuests,
     price,
-    bedrooms:bedroom,
-    bathrooms:bathroom
+    bedrooms: bedroom,
+    bathrooms: bathroom,
   };
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     const placeDoc = await Place.findById(id);
     const { id: userId } = user;
     if (userId === placeDoc.owner.toString()) {
-        await Place.findByIdAndUpdate(id, updatedDoc);
-        res.json("document updated");
+      await Place.findByIdAndUpdate(id, updatedDoc);
+      res.json("document updated");
     }
   });
 });
@@ -221,10 +222,10 @@ app.get("/places/:id", async (req, res) => {
   res.json(await Place.findById(id));
 });
 
-app.get('/place/:id',async(req,res)=>{
-  const {id}=req.params;
+app.get("/place/:id", async (req, res) => {
+  const { id } = req.params;
   res.json(await Place.findById(id));
-})
+});
 app.listen(process.env.PORT, () => {
   console.log("server is listening");
 });
