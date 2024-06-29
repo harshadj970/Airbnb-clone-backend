@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "https://airbnb-clone-io.vercel.app",
+    origin: "https://airbnb-clone-io.vercel.app/*",
   })
 );
 app.use("/uploads", express.static(__dirname + "/uploads"));
