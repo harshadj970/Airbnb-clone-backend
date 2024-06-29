@@ -14,12 +14,7 @@ const jwtSecret = "amvlwo";
 require("dotenv").config();
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    credentials: true,
-    origin: "https://airbnb-clone-io.vercel.app",
-  })
-);
+app.use(cors());
 app.use("/uploads", express.static(__dirname + "/uploads"));
 main();
 async function main() {
