@@ -15,7 +15,8 @@ require("dotenv").config();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin:'*'
+  origin:'*',
+  credentials:false
 }));
 app.use("/uploads", express.static(__dirname + "/uploads"));
 main();
