@@ -52,7 +52,7 @@ app.post("/login", async (req, res) => {
     if (passOk) {
       jwt.sign({ email, id: userDoc._id }, jwtSecret, {}, (err, token) => {
         if (err) throw err;
-        res.cookie("token", token).json(userDoc);
+        res.cookie("token", token).json({...userDoc,token});
       });
     } else {
       res.status(422).json("pass not ok");
@@ -63,7 +63,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
-  const { token } = req.cookies;
+  const { token } = req.cookies || req.headers['authorization'];;
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, user) => {
       if (err) throw err;
@@ -137,7 +137,7 @@ app.post("/places", (req, res) => {
     bedroom,
     bathroom,
   } = req.body;
-  const { token } = req.cookies;
+  const { token } = req.cookies || req.headers['authorization'];;
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     if (err) throw err;
     const placeDoc = await Place.create({
@@ -160,7 +160,7 @@ app.post("/places", (req, res) => {
 });
 
 app.get("/user-places", async (req, res) => {
-  const { token } = req.cookies;
+  const { token } = req.cookies || req.headers['authorization'];;
   console.log(token);
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     const { id } = user;
@@ -174,7 +174,7 @@ app.get("/places", async (req, res) => {
 });
 
 app.put("/places", async (req, res) => {
-  const { token } = req.cookies;
+  const { token } = req.cookies || req.headers['authorization'];
   const {
     id,
     title,
