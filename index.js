@@ -63,7 +63,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
-  const token = req.cookies || req.header('Authorization');
+  const token =  req.header('Authorization').replace("Bearer ","");
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, user) => {
       if (err) throw err;
@@ -137,7 +137,7 @@ app.post("/places", (req, res) => {
     bedroom,
     bathroom,
   } = req.body;
-  const token = req.cookies || req.header('Authorization');
+  const token =  req.header('Authorization').replace("Bearer ","");
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     if (err) throw err;
     const placeDoc = await Place.create({
@@ -160,8 +160,8 @@ app.post("/places", (req, res) => {
 });
 
 app.get("/user-places", async (req, res) => {
-  const token=req.cookies || req.header('Authorization');
-  console.log(token);
+  const token= req.header('Authorization').replace("Bearer ","");
+  console.log("token", token);
    jwt.verify(token, jwtSecret, {}, async (err, user) => {
     console.log("user "+user);
     const { id } = user;
@@ -175,7 +175,7 @@ app.get("/places", async (req, res) => {
 });
 
 app.put("/places", async (req, res) => {
-  const token = req.cookies || req.header('Authorization');
+  const token =  req.header('Authorization').replace("Bearer ","");
   const {
     id,
     title,
