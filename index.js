@@ -14,7 +14,9 @@ const jwtSecret = "amvlwo";
 require("dotenv").config();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin:'*'
+}));
 app.use("/uploads", express.static(__dirname + "/uploads"));
 main();
 async function main() {
