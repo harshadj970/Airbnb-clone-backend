@@ -161,6 +161,7 @@ app.post("/places", (req, res) => {
 
 app.get("/user-places", async (req, res) => {
   const { token } = req.cookies;
+  console.log(token);
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     const { id } = user;
     res.json(await Place.find({ owner: id }));
