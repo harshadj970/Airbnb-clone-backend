@@ -160,9 +160,9 @@ app.post("/places", (req, res) => {
 });
 
 app.get("/user-places", async (req, res) => {
-  const { token } = req.cookies || req.headers('Authorization');
+  const token= req.cookies || req.headers('Authorization');
   console.log(token);
-  jwt.verify(token, jwtSecret, {}, async (err, user) => {
+   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     console.log("user "+user);
     const { id } = user;
     res.json(await Place.find({ owner: id }));
