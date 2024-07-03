@@ -1,4 +1,5 @@
 const express = require("express");
+const path=require('path')
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -18,7 +19,7 @@ app.use(cors({
   origin:true,
   credentials:true
 }));
-app.use("/uploads", express.static(__dirname + "/uploads"));
+app.use("/uploads", express.static(path.join(__dirname + "uploads")));
 main();
 async function main() {
   await mongoose.connect(process.env.MONGO_URL);
