@@ -20,6 +20,8 @@ const placeSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
+  neighbourhood:String,
+  aboutOwner:String
 });
 
 const Place = mongoose.model("place", placeSchema);

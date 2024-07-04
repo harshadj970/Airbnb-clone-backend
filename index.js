@@ -10,6 +10,7 @@ const jwt = require("jsonwebtoken");
 const imgDownloader = require("image-downloader");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
+const cloudinary =require('cloudinary').v2;
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = "amvlwo";
 require("dotenv").config();
@@ -92,12 +93,7 @@ app.post("/logout", (req, res) => {
 
 app.post("/upload-by-link", async (req, res) => {
   const { link } = req.body;
-  const newName = Date.now() + ".jpg";
-  await imgDownloader.image({
-    url: link,
-    dest: __dirname + "/uploads/" + newName,
-  });
-  res.json(newName);
+  res.json(link);
 });
 
 const storage = multer.diskStorage({
@@ -110,17 +106,56 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-app.post("/upload-profile", upload.single("profile"), (req, res) => {
+app.post("/upload-profile", upload.single("profile"),async (req, res) => {
   if (!req.file) {
     return res.json("no files uploaded");
   }
-  res.status(200).json(req.file);
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+
+    res.json({ 
+      url: result.secure_url,
+      public_id: result.public_id
+    });
+  } 
+  catch (e) {
+    console.log(e);
+    res.status(500).send('Error in upload');
+  }
 });
-app.post("/upload", upload.array("photos"), (req, res) => {
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+app.post("/upload", upload.array("photos"), async(req, res) => {
   if (req.files.length === 0) {
     return res.json("no files uploaded");
   }
-  res.status(200).json(req.files);
+  try {
+    const uploadPromises = req.files.map(file => 
+      cloudinary.uploader.upload(file.path, {
+        folder: "uploads", 
+        resource_type: "auto",
+        transformation: [
+          { width: 1200, height: 1200, crop: "limit" },
+          { quality: "auto:good", fetch_format: "auto" }
+        ]
+      })
+    );
+    const results = await Promise.all(uploadPromises);
+    const uploadedFiles = results.map(result => ({
+      url: result.secure_url,
+      public_id: result.public_id
+    }));
+    res.json(uploadedFiles);
+  } 
+  catch (e) {
+    console.log(e);
+    res.status(500).send('Error in upload');
+  }
 });
 
 app.post("/places", (req, res) => {
@@ -137,6 +172,8 @@ app.post("/places", (req, res) => {
     price,
     bedroom,
     bathroom,
+    neighbourhood,
+    aboutOwner
   } = req.body;
   const token =  req.header('Authorization').replace("Bearer ","");
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
@@ -155,6 +192,8 @@ app.post("/places", (req, res) => {
       price,
       bedrooms: bedroom,
       bathrooms: bathroom,
+      neighbourhood,
+      aboutOwner
     });
     res.json(placeDoc);
   });
@@ -162,9 +201,7 @@ app.post("/places", (req, res) => {
 
 app.get("/user-places", async (req, res) => {
   const token= req.header('Authorization').replace("Bearer ","");
-  console.log("token", token);
    jwt.verify(token, jwtSecret, {}, async (err, user) => {
-    console.log("user "+user);
     const { id } = user;
     res.json(await Place.find({ owner: id }));
   });
@@ -191,6 +228,8 @@ app.put("/places", async (req, res) => {
     price,
     bedroom,
     bathroom,
+    neighbourhood,
+    aboutOwner
   } = req.body;
   const updatedDoc = {
     title,
@@ -205,6 +244,8 @@ app.put("/places", async (req, res) => {
     price,
     bedrooms: bedroom,
     bathrooms: bathroom,
+    neighbourhood,
+    aboutOwner
   };
   jwt.verify(token, jwtSecret, {}, async (err, user) => {
     const placeDoc = await Place.findById(id);
